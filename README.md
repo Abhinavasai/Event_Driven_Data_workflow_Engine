@@ -1,5 +1,7 @@
 # Event-Driven Data Workflow Engine
 
+**Live demo:** [https://event-driven-data-workflow-engine.vercel.app/](https://event-driven-data-workflow-engine.vercel.app/)
+
 An event-driven microservices platform for file-based data ingestion, transformation, and loading into PostgreSQL. A Java workflow engine orchestrates pipeline steps via Redis Streams; a Python transform service runs pandas transformations; a FastAPI API gateway exposes REST endpoints; and a React dashboard provides real-time monitoring.
 
 ## Architecture
@@ -95,6 +97,8 @@ npm run e2e:4001
 ```
 
 Default admin key: `dev-admin-key-change-me`. Deploy with Vercel Root Directory = `vercel-app`.
+
+**Deployed app:** [https://event-driven-data-workflow-engine.vercel.app/](https://event-driven-data-workflow-engine.vercel.app/)
 
 ## Local frontend development
 
