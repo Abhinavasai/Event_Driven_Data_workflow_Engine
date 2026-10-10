@@ -1,11 +1,19 @@
 import { randomUUID } from 'crypto';
 import { hashApiKey } from './auth';
+import { seedDashboardDemo } from './demo-seed';
 import { ensureStoreReady, getAll, setAll } from './store';
 import {
   SAMPLE_ORDER_WORKFLOW_ID,
   SAMPLE_PRODUCT_WORKFLOW_ID,
 } from './sample';
-import type { ApiKeyRecord, WorkflowDefinition } from './types';
+import type { ApiKeyRecord, WorkflowDefinition, WorkflowRun } from './types';
+
+function shouldAutoSeedDemo(): boolean {
+  const raw = process.env.AUTO_SEED_DEMO?.trim().toLowerCase();
+  if (raw === '0' || raw === 'false' || raw === 'off') return false;
+  // Default on for Vercel / empty stores so the dashboard isn't blank after deploy.
+  return true;
+}
 
 const ORDER_STEPS = [
   {
@@ -159,6 +167,13 @@ export async function ensureSeeded(): Promise<void> {
     created_at: now,
     updated_at: now,
   });
+
+  if (shouldAutoSeedDemo()) {
+    const runs = await getAll<WorkflowRun>('runs');
+    if (runs.length === 0) {
+      await seedDashboardDemo();
+    }
+  }
 
   seeded = true;
 }
