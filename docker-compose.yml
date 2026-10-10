@@ -1,0 +1,134 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: workflow-postgres
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - workflow-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: workflow-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - workflow-net
+
+  workflow-engine:
+    build:
+      context: ./services/workflow-engine
+      dockerfile: Dockerfile
+    container_name: workflow-engine
+    env_file: .env
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_DATA_REDIS_HOST: ${REDIS_HOST}
+      SPRING_DATA_REDIS_PORT: ${REDIS_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      FILE_WATCH_DIR: /data/input
+    ports:
+      - "${WORKFLOW_ENGINE_PORT:-8080}:8080"
+    volumes:
+      - upload-data:/data/input
+      - ./sample-data/input:/data/watch:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - workflow-net
+
+  transform-service:
+    build:
+      context: ./services/transform-service
+      dockerfile: Dockerfile
+    container_name: transform-service
+    env_file: .env
+    environment:
+      REDIS_URL: ${REDIS_URL}
+      TRANSFORM_SERVICE_PORT: ${TRANSFORM_SERVICE_PORT}
+    ports:
+      - "${TRANSFORM_SERVICE_PORT:-8001}:8001"
+    volumes:
+      - upload-data:/data/input
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - workflow-net
+
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    env_file: .env
+    environment:
+      POSTGRES_URL: ${POSTGRES_URL}
+      REDIS_URL: ${REDIS_URL}
+      WORKFLOW_ENGINE_URL: ${WORKFLOW_ENGINE_URL}
+      TRANSFORM_SERVICE_URL: ${TRANSFORM_SERVICE_URL}
+      UPLOAD_DIR: ${UPLOAD_DIR}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      DEFAULT_ADMIN_API_KEY: ${DEFAULT_ADMIN_API_KEY:-}
+    ports:
+      - "${API_GATEWAY_PORT:-8000}:8000"
+    volumes:
+      - upload-data:/data/input
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      workflow-engine:
+        condition: service_started
+    networks:
+      - workflow-net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: workflow-frontend
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - workflow-net
+
+volumes:
+  postgres-data:
+  upload-data:
+
+networks:
+  workflow-net:
+    driver: bridge

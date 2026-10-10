@@ -1,0 +1,4 @@
+order_id,customer_name,amount,order_date
+ORD-BAD-1,Alice,not-a-number,2025-01-01
+ORD-BAD-2,,45.00,not-a-date
+ORD-BAD-1,Bob,12.50,2025-02-01

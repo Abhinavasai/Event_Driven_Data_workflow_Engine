@@ -1,0 +1,15 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+app:
+  file-watch:
+    enabled: false
+    directories: []
+
+logging:
+  level:
+    com.workflow.engine: WARN

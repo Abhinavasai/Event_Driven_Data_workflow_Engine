@@ -1,0 +1,62 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: workflow-engine
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:workflow}
+    username: ${POSTGRES_USER:workflow}
+    password: ${POSTGRES_PASSWORD:workflow}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+app:
+  file-watch:
+    enabled: true
+    directories:
+      - ${FILE_WATCH_DIR:/data/input}
+    poll-interval-ms: 1000
+    settle-ms: 500
+  redis:
+    stream:
+      workflow-events: workflow:events
+      transform-events: transform:events
+      status-events: status:events
+      dead-letter: workflow:dead-letter
+    consumer-group: workflow-engine-group
+    consumer-name: workflow-consumer-1
+    stream-max-len: 10000
+    transform-cache-prefix: "transform:cache:"
+    transform-cache-ttl-seconds: 3600
+    workflow-data-prefix: "workflow:data:"
+    lock-prefix: "workflow:lock:"
+    lock-ttl-seconds: 300
+  retry:
+    base-delay-ms: 2000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.workflow.engine: INFO

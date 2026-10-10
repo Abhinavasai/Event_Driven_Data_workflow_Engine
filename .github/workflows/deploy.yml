@@ -1,0 +1,52 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build images
+        run: |
+          docker compose build workflow-engine transform-service api-gateway frontend
+
+      - name: Tag images
+        run: |
+          SHA="${{ github.sha }}"
+          for svc in workflow-engine transform-service api-gateway frontend; do
+            docker tag event_driven_workflow-${svc} ${svc}:${SHA}
+            docker tag event_driven_workflow-${svc} ${svc}:latest
+          done
+
+      - name: Push to AWS ECR (when configured)
+        if: env.AWS_ECR_REGISTRY != ''
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
+        run: |
+          echo "Pushing images to ${AWS_ECR_REGISTRY}..."
+          aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AWS --password-stdin "${AWS_ECR_REGISTRY}"
+          SHA="${{ github.sha }}"
+          for svc in workflow-engine transform-service api-gateway frontend; do
+            docker tag ${svc}:latest "${AWS_ECR_REGISTRY}/${svc}:${SHA}"
+            docker tag ${svc}:latest "${AWS_ECR_REGISTRY}/${svc}:latest"
+            docker push "${AWS_ECR_REGISTRY}/${svc}:${SHA}"
+            docker push "${AWS_ECR_REGISTRY}/${svc}:latest"
+          done
+
+      - name: Local registry note
+        if: env.AWS_ECR_REGISTRY == ''
+        env:
+          AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
+        run: |
+          echo "AWS_ECR_REGISTRY is not set — images were built locally only."
+          echo "Configure AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, and AWS_ECR_REGISTRY secrets to push to ECR."

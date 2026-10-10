@@ -1,0 +1,56 @@
+name: Python CI
+
+on:
+  push:
+    paths:
+      - 'services/api-gateway/**'
+      - 'services/transform-service/**'
+      - '.github/workflows/ci-python.yml'
+  pull_request:
+    paths:
+      - 'services/api-gateway/**'
+      - 'services/transform-service/**'
+      - '.github/workflows/ci-python.yml'
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api-gateway, transform-service]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          pip install -r services/${{ matrix.service }}/requirements.txt
+          if [ -f services/${{ matrix.service }}/requirements-dev.txt ]; then
+            pip install -r services/${{ matrix.service }}/requirements-dev.txt
+          fi
+      - name: Lint
+        run: |
+          cd services/${{ matrix.service }}
+          ruff check .
+          ruff format --check .
+      - name: Test
+        run: |
+          cd services/${{ matrix.service }}
+          pytest --cov=app -v
+        env:
+          POSTGRES_URL: postgresql+asyncpg://test_user:test_pass@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379/0

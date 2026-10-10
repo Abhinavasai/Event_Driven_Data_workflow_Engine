@@ -1,0 +1,8 @@
+[
+  {"product_id":"P-100","name":"Widget A","category":"hardware","price":19.99,"in_stock":true},
+  {"product_id":"P-101","name":"Widget B","category":"hardware","price":29.5,"in_stock":true},
+  {"product_id":"P-102","name":"Gadget X","category":"electronics","price":149.0,"in_stock":false},
+  {"product_id":"P-100","name":"Widget A","category":"hardware","price":19.99,"in_stock":true},
+  {"product_id":"P-103","name":"Cable Pack","category":"accessories","price":9.25,"in_stock":true},
+  {"product_id":"P-104","name":"Mount Kit","category":"accessories","price":24.00,"in_stock":true}
+]

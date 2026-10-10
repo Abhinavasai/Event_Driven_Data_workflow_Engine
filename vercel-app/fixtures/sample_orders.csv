@@ -1,0 +1,9 @@
+order_id,customer_name,amount,order_date,status
+ORD-001,  john doe ,125.50,2026-07-01,pending
+ORD-002,jane smith,89.00,2026-07-02,completed
+ORD-001,John Doe,125.50,2026-07-01,pending
+ORD-003,ACME Corp,450.00,2026-07-03,shipped
+ORD-004,alice jones,12.00,2026-07-04,pending
+ORD-005,Bob Lee,999.99,2026-07-05,completed
+ORD-006,Carol White,55.25,2026-07-06,pending
+ORD-007,Dan Brown,0.00,2026-07-07,cancelled

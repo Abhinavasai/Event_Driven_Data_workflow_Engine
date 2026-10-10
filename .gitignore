@@ -1,0 +1,104 @@
+# -----------------------------------------------------------------------------
+# Environment & secrets (keep *.example files tracked)
+# -----------------------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+!.env.example
+!**/.env.example
+
+# -----------------------------------------------------------------------------
+# OS / IDE
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Cursor / local AI tooling (not needed for deploy)
+.cursor/
+.agent-tools/
+agent-tools/
+
+# -----------------------------------------------------------------------------
+# Node / frontend / Vercel app
+# -----------------------------------------------------------------------------
+node_modules/
+dist/
+build/
+out/
+.next/
+.turbo/
+.vercel/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local runtime data (SQLite, uploads, caches)
+**/data/
+**/data-test/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+vercel-app/data/
+vercel-app/.next/
+frontend/dist/
+frontend/node_modules/
+
+# -----------------------------------------------------------------------------
+# Python
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.venv/
+venv/
+.env.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# -----------------------------------------------------------------------------
+# Java / Maven
+# -----------------------------------------------------------------------------
+target/
+*.class
+*.jar
+*.war
+*.ear
+!services/**/lib/**/*.jar
+*.iml
+.gradle/
+
+# -----------------------------------------------------------------------------
+# Docker / local volumes
+# -----------------------------------------------------------------------------
+upload-data/
+docker-data/
+
+# -----------------------------------------------------------------------------
+# Logs & temp
+# -----------------------------------------------------------------------------
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+
+# -----------------------------------------------------------------------------
+# Design-system local overrides (optional generated artifacts)
+# -----------------------------------------------------------------------------
+design-system/**/overrides/

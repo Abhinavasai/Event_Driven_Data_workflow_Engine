@@ -1,0 +1,40 @@
+name: Integration Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start stack
+        run: docker compose up --build -d
+
+      - name: Wait for health endpoints
+        run: |
+          set -e
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8000/api/v1/health >/dev/null 2>&1; then
+              echo "API gateway healthy"
+              break
+            fi
+            sleep 5
+          done
+          curl -sf http://localhost:8000/api/v1/health
+          curl -sf http://localhost:8080/internal/health || true
+          curl -sf http://localhost:8001/internal/health || true
+
+      - name: Run smoke test
+        run: bash scripts/smoke_test.sh
+        env:
+          API_BASE_URL: http://localhost:8000
+          SMOKE_SKIP_AUTH: "false"
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

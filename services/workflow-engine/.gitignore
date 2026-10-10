@@ -1,0 +1,12 @@
+target/
+.idea/
+*.iml
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+.env
+.env.local
+!.env.example
+.classpath
+.project
+.settings/

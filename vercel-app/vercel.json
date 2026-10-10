@@ -1,0 +1,7 @@
+{
+  "buildCommand": "npm run build",
+  "framework": "nextjs",
+  "env": {
+    "STORAGE_DIR": "/tmp/event-workflow-data"
+  }
+}
